@@ -6,7 +6,7 @@ This repository is designed as a **portfolio-grade reference implementation** fo
 
 ---
 
-## 🎯 Project Goals
+## Project Goals
 
 This project demonstrates:
 
@@ -17,7 +17,7 @@ This project demonstrates:
 
 ---
 
-## 🏗 Architecture Overview
+## Architecture Overview
 
 ```
 API Sources → Airflow (ETL/ELT)
@@ -36,7 +36,7 @@ Monitoring:
 
 ---
 
-## 📚 DAMA-DMBOK Mapping
+## DAMA-DMBOK Mapping
 
 This project explicitly maps features to **Data Governance knowledge areas**.
 
@@ -55,7 +55,7 @@ This project explicitly maps features to **Data Governance knowledge areas**.
 
 ---
 
-## 🧩 Tech Stack
+## Tech Stack
 
 ### Core
 
@@ -81,7 +81,7 @@ This project explicitly maps features to **Data Governance knowledge areas**.
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 project-root/
@@ -123,7 +123,7 @@ project-root/
 
 ---
 
-## 🔄 Data Pipeline Flow
+## Data Pipeline Flow
 
 ### Step 1 — Data Ingestion
 
@@ -160,7 +160,7 @@ project-root/
 
 ---
 
-## 📊 Data Governance Implementation
+## Data Governance Implementation
 
 ### Data Quality
 
@@ -191,7 +191,7 @@ project-root/
 
 ---
 
-## 🚀 How To Run Locally
+## How To Run Locally
 
 ### Prerequisites
 
@@ -216,7 +216,7 @@ Services:
 
 ---
 
-## 🧪 Example Use Cases
+## Example Use Cases
 
 * Portfolio project for Data Engineers
 * Interview demo project
@@ -225,7 +225,7 @@ Services:
 
 ---
 
-## 📈 Future Extensions
+## Future Extensions
 
 * CDC streaming (Kafka)
 * Iceberg tables
@@ -235,13 +235,13 @@ Services:
 
 ---
 
-## 📜 License
+## License
 
 MIT License
 
 ---
 
-## ⭐ Why This Project Matters
+## Why This Project Matters
 
 Most demo projects show only ingestion or dashboards.
 
