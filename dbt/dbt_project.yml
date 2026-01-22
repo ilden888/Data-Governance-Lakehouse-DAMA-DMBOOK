@@ -1,0 +1,37 @@
+name: 'datalakehouse'
+version: '1.0.0'
+config-version: 2
+
+profile: 'datalakehouse'
+
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+data-paths: ["data"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  datalakehouse:
+    staging:
+      +materialized: view
+      +schema: staging
+    ods:
+      +materialized: table
+      +schema: ods
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  datalakehouse:
+    +schema: staging
+
+vars:
+  start_date: '2024-01-01'
+  end_date: '2025-12-31'

@@ -1,0 +1,45 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: ods
+    tables:
+      - name: raw_events
+        columns:
+          - name: event_id
+            description: "Unique event identifier"
+            tests:
+              - unique
+              - not_null
+          - name: event_type
+            description: "Type of event"
+            tests:
+              - not_null
+          - name: ingested_at
+            description: "Timestamp when event was ingested"
+            tests:
+              - not_null
+
+models:
+  - name: stg_earthquake_events
+    description: "Cleaned and normalized earthquake event staging layer"
+    columns:
+      - name: event_id
+        description: "Unique event identifier"
+        tests:
+          - unique
+          - not_null
+      - name: magnitude
+        description: "Earthquake magnitude on Richter scale"
+        tests:
+          - not_null
+      - name: place
+        description: "Geographic location of earthquake"
+      - name: latitude
+        description: "Latitude coordinate"
+      - name: longitude
+        description: "Longitude coordinate"
+      - name: depth
+        description: "Depth in kilometers"
+      - name: event_time
+        description: "Time of earthquake event"

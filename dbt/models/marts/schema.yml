@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_earthquake_metrics
+    description: "Business-ready fact table with earthquake metrics and aggregations"
+    columns:
+      - name: event_date
+        description: "Date of earthquake event"
+        tests:
+          - not_null
+      - name: event_type
+        description: "Type of seismic event"
+      - name: magnitude_category
+        description: "Categorical magnitude classification"
+      - name: event_count
+        description: "Number of events in period"
+        tests:
+          - not_null
+          - dbt_utils.accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 10, 20, 50, 100]
+              config:
+                where: "event_count > 0"
+      - name: avg_magnitude
+        description: "Average magnitude"
+      - name: max_magnitude
+        description: "Maximum magnitude"
+      - name: min_magnitude
+        description: "Minimum magnitude"

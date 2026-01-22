@@ -1,0 +1,8 @@
+host: postgres
+user: datauser
+password: datapassword
+port: 5432
+dbname: datalakehouse
+schema: staging
+threads: 4
+keepalives_idle: 0
