@@ -1,0 +1,132 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Data Warehouse
+  postgres:
+    image: postgres:15-alpine
+    container_name: datalakehouse-postgres
+    environment:
+      POSTGRES_USER: datauser
+      POSTGRES_PASSWORD: datapassword
+      POSTGRES_DB: datalakehouse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U datauser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - datalakehouse-network
+
+  # MinIO (S3 compatible storage)
+  minio:
+    image: minio/minio:latest
+    container_name: datalakehouse-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - datalakehouse-network
+
+  # Apache Airflow
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: datalakehouse-airflow-webserver
+    environment:
+      AIRFLOW_HOME: /airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /airflow/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://datauser:datapassword@postgres:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-change-in-production'
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      PYTHONPATH: /airflow
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../airflow/dags:/airflow/dags
+      - ../airflow/plugins:/airflow/plugins
+      - airflow_logs:/airflow/logs
+    command: >
+      bash -c "airflow db init &&
+               airflow users create --username admin --password admin 
+                                   --firstname Admin --lastname User 
+                                   --role Admin --email admin@example.com 2>/dev/null || true &&
+               airflow webserver"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datalakehouse-network
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: datalakehouse-airflow-scheduler
+    environment:
+      AIRFLOW_HOME: /airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /airflow/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://datauser:datapassword@postgres:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      PYTHONPATH: /airflow
+    volumes:
+      - ../airflow/dags:/airflow/dags
+      - ../airflow/plugins:/airflow/plugins
+      - airflow_logs:/airflow/logs
+    command: airflow scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datalakehouse-network
+
+  # Metabase
+  metabase:
+    image: metabase/metabase:latest
+    container_name: datalakehouse-metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: datauser
+      MB_DB_PASS: datapassword
+      MB_DB_HOST: postgres
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datalakehouse-network
+
+  # OpenMetadata (optional, lightweight alternative)
+  # OpenMetadata requires more resources, running in backend mode for demo
+  # Comment out if resources are limited
+
+networks:
+  datalakehouse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+  airflow_logs:
