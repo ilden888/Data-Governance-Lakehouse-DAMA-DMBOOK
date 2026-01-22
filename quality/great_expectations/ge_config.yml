@@ -1,0 +1,49 @@
+"""
+Great Expectations context configuration
+"""
+
+datasources:
+  postgres_warehouse:
+    type: sql
+    credentials:
+      host: postgres
+      port: 5432
+      username: datauser
+      password: datapassword
+      database: datalakehouse
+      driver: postgresql
+
+validations:
+  - name: raw_events_validation
+    datasource: postgres_warehouse
+    table: ods.raw_events
+    expectations:
+      - type: table_row_count
+        min_value: 0
+        max_value: 10000000
+      - type: column_values_not_null
+        column: event_id
+      - type: column_values_unique
+        column: event_id
+  
+  - name: staging_events_validation
+    datasource: postgres_warehouse
+    table: staging.stg_earthquake_events
+    expectations:
+      - type: column_values_not_null
+        column: magnitude
+      - type: column_values_between
+        column: magnitude
+        min_value: -2
+        max_value: 10
+  
+  - name: metrics_validation
+    datasource: postgres_warehouse
+    table: marts.fct_earthquake_metrics
+    expectations:
+      - type: column_values_not_null
+        column: event_count
+      - type: column_values_between
+        column: avg_magnitude
+        min_value: -2
+        max_value: 10
