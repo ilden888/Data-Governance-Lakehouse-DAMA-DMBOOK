@@ -1,0 +1,124 @@
+"""
+OpenMetadata connector for automated metadata ingestion and lineage tracking
+"""
+
+metadata_sources:
+  - name: "PostgreSQL DWH"
+    type: "postgres"
+    connection:
+      host: "postgres"
+      port: 5432
+      username: "datauser"
+      password: "datapassword"
+      database: "datalakehouse"
+    options:
+      include_schemas: ["ods", "staging", "marts", "metadata"]
+      include_tables: "*"
+
+lineage:
+  sources:
+    - name: "USGS Earthquake API"
+      type: "api"
+      description: "Real-time earthquake data feed"
+      
+  transformations:
+    - source: "USGS Earthquake API"
+      target: "ods.raw_events"
+      type: "ingestion"
+      description: "Raw data ingestion from earthquake API"
+      
+    - source: "ods.raw_events"
+      target: "staging.stg_earthquake_events"
+      type: "transformation"
+      description: "Data cleaning and normalization"
+      tool: "dbt"
+      
+    - source: "staging.stg_earthquake_events"
+      target: "ods.dim_earthquake_events"
+      type: "transformation"
+      description: "Create normalized dimension table"
+      tool: "dbt"
+      
+    - source: "ods.dim_earthquake_events"
+      target: "marts.fct_earthquake_metrics"
+      type: "aggregation"
+      description: "Create business metrics"
+      tool: "dbt"
+      
+    - source: "marts.fct_earthquake_metrics"
+      target: "Metabase"
+      type: "visualization"
+      description: "BI consumption layer"
+
+data_contracts:
+  - table: "ods.raw_events"
+    schema_version: "1.0"
+    columns:
+      - name: "event_id"
+        type: "VARCHAR(255)"
+        nullable: false
+        description: "Unique event identifier"
+        constraint: "PRIMARY KEY, UNIQUE"
+        
+      - name: "event_type"
+        type: "VARCHAR(100)"
+        nullable: false
+        description: "Type of seismic event"
+        
+      - name: "event_data"
+        type: "JSONB"
+        nullable: false
+        description: "Full event data in JSON format"
+        
+      - name: "source_system"
+        type: "VARCHAR(100)"
+        nullable: false
+        description: "Source system identifier"
+        
+  - table: "marts.fct_earthquake_metrics"
+    schema_version: "1.0"
+    sla:
+      freshness_hours: 24
+      expected_rows_min: 100
+      expected_rows_max: 100000
+    columns:
+      - name: "event_date"
+        type: "DATE"
+        nullable: false
+        description: "Event date for aggregation"
+        
+      - name: "event_count"
+        type: "INTEGER"
+        nullable: false
+        description: "Count of events"
+        
+      - name: "avg_magnitude"
+        type: "FLOAT"
+        nullable: true
+        description: "Average earthquake magnitude"
+
+ownership:
+  - dataset: "ods.raw_events"
+    owner: "Data Engineering Team"
+    owner_email: "data-eng@company.com"
+    tier: "BRONZE"
+    
+  - dataset: "staging.stg_earthquake_events"
+    owner: "Data Engineering Team"
+    owner_email: "data-eng@company.com"
+    tier: "SILVER"
+    
+  - dataset: "marts.fct_earthquake_metrics"
+    owner: "Analytics Engineering Team"
+    owner_email: "analytics-eng@company.com"
+    tier: "GOLD"
+
+tags:
+  - name: "pii"
+    description: "Contains personally identifiable information"
+    
+  - name: "sensitive"
+    description: "Contains sensitive business data"
+    
+  - name: "financial"
+    description: "Contains financial data"
